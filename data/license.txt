@@ -1,2 +1,2 @@
-Xmasgirl1.png ---- ??? from pymunk examples
+Xmasgirl1.png ---- from "Sithjester" see http://untamed.wild-refuge.net/rmxpresources.php?characters . License free, credit only, cc-by?
 sfx.wav ---------- ??? from pymunk examples
