@@ -10,7 +10,7 @@ http://untamed.wild-refuge.net/rmxpresources.php?characters
 __docformat__ = "reStructuredText"
 
 import sys,math
-
+import levels
 import pygame
 import os
 import pymunk
@@ -63,6 +63,8 @@ class Viewer():
     def __init__(self,width=690,height=400,fps=60):
         Viewer.width = width
         Viewer.height = height
+        Viewer.level_number = 1
+        self.current_level_number = 1
         self.fps = 60
         self.dt = 1./self.fps
         self.PLAYER_VELOCITY = 100. *2.
@@ -117,9 +119,19 @@ class Viewer():
                 
         self.space.add_collision_handler(1,2).begin = passthrough_handler
         
+        def goal_handler(arbiter,space,data):
+            if arbiter.shapes[0].body.velocity.y < 0:
+                print("Level {} cleared".format(str(self.current_level_number)))
+                self.current_level_number += 1
+                return True
+            else:
+                return True
+        
+        self.space.add_collision_handler(1,9).begin = goal_handler
+        
          # player
         self.body = pymunk.Body(5, pymunk.inf)
-        self.body.position = 100,100
+        self.body.position = self.width*0.1449275,self.height*0.25
         
         
         self.head = pymunk.Circle(self.body, 10, (0,5))
@@ -140,6 +152,8 @@ class Viewer():
         self.space.add(self.body, self.head, self.feet,self.head2)
 
         
+        # -------------- level_number: player-startpos
+        self.leveldata = {1:(self.width*0.1449275,self.height*0.25),2:(self.width*0.1449275,self.height*0.25)}
         
         self.run()
         
@@ -158,10 +172,14 @@ class Viewer():
             , pymunk.Segment(self.space.static_body, (self.width*0.9855, self.height*0.925), (self.width*0.01449, self.height*0.925), 3)
             , pymunk.Segment(self.space.static_body, (self.width*0.01449, self.height*0.925), (self.width*0.01449, self.height*0.125), 3)
                        ]
+        
+        
+        
         # paint some walls with colors
         static[1].color = (255, 0, 0)  # pygame.color.THECOLORS['red']
         static[2].color = (0, 255, 0)  # pygame.color.THECOLORS['green']
         static[3].color = (255, 0, 0)  # pygame.color.THECOLORS['red']
+        
 
         # rounded shape
         rounded = [pymunk.Segment(self.space.static_body, (self.width*0.7246, self.height*0.125), (self.width*0.753623, self.height*0.15), 3)
@@ -185,6 +203,21 @@ class Viewer():
             s.friction = 1.
             s.group = 1
         self.space.add(static, platforms + rounded)
+        
+        # goal platform
+        static.append(pymunk.Segment(self.space.static_body, (self.width-self.width*0.14492,self.height*0.925-self.height*0.175),(self.width-self.width*0.07246,self.height*0.925-self.height*0.175),4))
+        static[-1].color = (255,255,255)
+        static[-1].friction = 1.
+        static[-1].goup = 9
+        static[-1].collision_type = 9
+        self.space.add(static[-1])
+        
+    def change_level(self, level_number):
+        self.space.remove(self.body, self.head, self.feet,self.head2)
+        self.space = pymunk.Space()
+        self.space.gravity = (0, -1000)
+        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+        self.space.add(self.body, self.head, self.feet,self.head2)
     
     
     def run(self):
@@ -196,6 +229,10 @@ class Viewer():
         landed_previous = False
         
         while running:
+            if self.level_number != self.current_level_number:
+                self.change_level(self.level_number)
+                self.body.position = self.leveldata[self.level_number]
+                self.current_level_number = self.level_number
             grounding = {
                 'normal' : pymunk.vec2d.Vec2d.zero(),
                 'penetration' : pymunk.vec2d.Vec2d.zero(),
@@ -348,5 +385,5 @@ class Viewer():
             self.clock.tick(self.fps)
 
 if __name__ == '__main__':
-    Viewer(1000,800)
+    Viewer(690,400)
     sys.exit()
