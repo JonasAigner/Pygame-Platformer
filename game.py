@@ -12,8 +12,8 @@ __docformat__ = "reStructuredText"
 import sys,math
 
 import pygame
-from pygame.locals import *
-from pygame.color import *
+#from pygame.locals import *
+#from pygame.color import *
 import os
 import pymunk
 from pymunk.vec2d import Vec2d
@@ -50,6 +50,40 @@ HEAD_FRICTION = 0.7
 
 PLATFORM_SPEED = 1
 
+
+def write(background, text, x=50, y=150, color=(0, 0, 0),
+          font_size=None, font_name="mono", bold=True, origin="topleft"):
+    """blit text on a given pygame surface (given as 'background')
+       the origin is the alignment of the text surface
+       origin can be 'center', 'centercenter', 'topleft', 'topcenter', 'topright', 'centerleft', 'centerright',
+       'bottomleft', 'bottomcenter', 'bottomright'
+    """
+    if font_size is None:
+        font_size = 24
+    font = pygame.font.SysFont(font_name, font_size, bold)
+    width, height = font.size(text)
+    surface = font.render(text, True, color)
+
+    if origin == "center" or origin == "centercenter":
+        background.blit(surface, (x - width // 2, y - height // 2))
+    elif origin == "topleft":
+        background.blit(surface, (x, y))
+    elif origin == "topcenter":
+        background.blit(surface, (x - width // 2, y))
+    elif origin == "topright":
+        background.blit(surface, (x - width , y))
+    elif origin == "centerleft":
+        background.blit(surface, (x, y - height // 2))
+    elif origin == "centerright":
+        background.blit(surface, (x - width , y - height // 2))
+    elif origin == "bottomleft":
+        background.blit(surface, (x , y - height ))
+    elif origin == "bottomcenter":
+        background.blit(surface, (x - width // 2, y ))
+    elif origin == "bottomright":
+        background.blit(surface, (x - width, y - height))
+
+
 def main():
 
     ### PyGame init
@@ -77,9 +111,9 @@ def main():
                 , pymunk.Segment(space.static_body, (680, 370), (10, 370), 3)
                 , pymunk.Segment(space.static_body, (10, 370), (10, 50), 3)
                 ]  
-    static[1].color = pygame.color.THECOLORS['red']
-    static[2].color = pygame.color.THECOLORS['green']
-    static[3].color = pygame.color.THECOLORS['red']
+    static[1].color = (255,0,0)#pygame.color.THECOLORS['red']
+    static[2].color = (0,255,0)#pygame.color.THECOLORS['green']
+    static[3].color = (255,0,0)#pygame.color.THECOLORS['red']
     
     # rounded shape
     rounded = [pymunk.Segment(space.static_body, (500, 50), (520, 60), 3)
@@ -190,19 +224,19 @@ def main():
             ground_velocity = grounding['body'].velocity
     
         for event in pygame.event.get():
-            if event.type == QUIT or \
-                event.type == KEYDOWN and (event.key in [K_ESCAPE, K_q]):  
+            if event.type == pygame.QUIT or \
+                event.type == pygame.KEYDOWN and (event.key in [pygame.K_ESCAPE, pygame.K_q]):  
                 running = False
-            elif event.type == KEYDOWN and event.key == K_p:
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
                 pygame.image.save(screen, "platformer.png")
                 
-            elif event.type == KEYDOWN and event.key == K_UP:
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
                 if well_grounded or remaining_jumps > 0:                    
                     jump_v = math.sqrt(2.0 * JUMP_HEIGHT * abs(space.gravity.y))
                     impulse = (0,body.mass * (ground_velocity.y+jump_v))
                     body.apply_impulse_at_local_point(impulse)
                     remaining_jumps -=1
-            elif event.type == KEYUP and event.key == K_UP:                
+            elif event.type == pygame.KEYUP and event.key == pygame.K_UP:                
                 body.velocity.y = min(body.velocity.y, JUMP_CUTOFF_VELOCITY)
                 
         # Target horizontal velocity of player
@@ -214,13 +248,13 @@ def main():
             direction = -1
         
         keys = pygame.key.get_pressed()
-        if (keys[K_LEFT]):
+        if (keys[pygame.K_LEFT]):
             direction = -1
             target_vx -= PLAYER_VELOCITY
-        if (keys[K_RIGHT]):
+        if (keys[pygame.K_RIGHT]):
             direction = 1
             target_vx += PLAYER_VELOCITY
-        if (keys[K_DOWN]):
+        if (keys[pygame.K_DOWN]):
             direction = -3
             
         feet.surface_velocity = -target_vx, 0
@@ -285,13 +319,16 @@ def main():
             landed_previous = False
         if landing['n'] > 0:
             p = pymunk.pygame_util.to_pygame(landing['p'], screen)
-            pygame.draw.circle(screen, pygame.color.THECOLORS['yellow'], p, 5)
+            pygame.draw.circle(screen, (0,255,255), p, 5)
             landing['n'] -= 1
         
         # Info and flip screen
-        screen.blit(font.render("fps: " + str(clock.get_fps()), 1, THECOLORS["white"]), (0,0))
-        screen.blit(font.render("Move with Left/Right, jump with Up, press again to double jump", 1, THECOLORS["darkgrey"]), (5,height - 35))
-        screen.blit(font.render("Press ESC or Q to quit", 1, THECOLORS["darkgrey"]), (5,height - 20))
+        write(screen, "fps: {:.2f} ".format(clock.get_fps()), 1, 1, (255,255,255), font_size=12)
+        write(screen, "Move with Left/Right, jump with Up, press again to double jump", 100, 1, (250,250,250), font_size=12)
+        write(screen, "Press ESC or Q to quit", 1, 15, (255,255,255), font_size=12)
+        #screen.blit(font.render("fps: " + str(clock.get_fps()), 1, (255,255,255), (0,0)))
+        #screen.blit(font.render("Move with Left/Right, jump with Up, press again to double jump", 1, (50,50,50), (5,height - 35)))
+        #screen.blit(font.render("Press ESC or Q to quit", 1, (50,50,50)), (5,height - 20))
         
        
         pygame.display.flip()
