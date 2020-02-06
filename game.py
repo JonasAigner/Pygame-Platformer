@@ -133,59 +133,20 @@ class Viewer():
         self.space.gravity = 0, -1000
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
 
-        ##self.space = levels.create_walls(self.current_level_number, self.space, self.width, self.height)
-
-
-
-        #values = levels.create_moving_platforms(self.current_level_number, self.width, self.height)
-
-        # moving platform
-
-
-
-        #pa = [(self.width * 0.942, self.height * 0.25), (self.width * 0.869, self.height * 0.5),
-        #                      (self.width * 0.942, self.height * 0.725), (self.width * 0.43478, self.height * 0.725),
-        #                      (self.width * 0.942, self.height * 0.725)]
-
-        #platform_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
-        #platform_body.position = self.width * 0.942, self.height * 0.25
-        #s = pymunk.Segment(self.platform_body, (-self.width * 0.04, 0), (self.width * 0.04, 0), 5)
-        #s.friction = 2.
-        #s.group = 1
-        #s.color = pygame.color.THECOLORS["blue"]
-        #self.space.add(s)
-        #Moving_Platform(speed=2, path=pa, x=self.width*0.942, y=self.height*0.25,
-        #             x1= -self.width*0.04, y1=0, x2=self.width*0.04, y2=0, size=5, space=self.space)
-
-        # 2.platform
-        #pa = [relative_pos((500, 300)), relative_pos((200, 300))]
-        #pos1 = relative_pos((500,300))
-
-        #Moving_Platform(speed=2, path=pa, x=pos1[0],y=pos1[1], x1=-25, y1=0, x2=25, y2=0, size=5, space=self.space  )
-        #self.platform_path2 = [relative_pos((600, 300)), relative_pos((800, 300))]
-        #self.platform_path_index2 = 0
-        #self.platform_body2 = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
-        #self.platform_body2.position = relative_pos((600, 300))
-        #s2 = pymunk.Segment(self.platform_body2, relative_pos((-25, 0)), relative_pos((25, 0)), 5)
-        #s2.friction = 2.
-        #s2.group = 1
-        #s2.color = pygame.color.THECOLORS["blue"]
-        #self.space.add(s2)
-
         # pass through platform
-        passthrough = pymunk.Segment(self.space.static_body, (self.width * 0.391, self.height * 0.25),
-                                     (self.width * 0.463, self.height * 0.25), 5)
-        passthrough.color = pygame.color.THECOLORS["yellow"]
-        passthrough.friction = 1.
-        passthrough.collision_type = 2
-        passthrough.filter = pymunk.ShapeFilter(categories=0b1000)
-        self.space.add(passthrough)
+        #passthrough = pymunk.Segment(self.space.static_body, (self.width * 0.391, self.height * 0.25),
+        #                             (self.width * 0.463, self.height * 0.25), 5)
+        #passthrough.color = pygame.color.THECOLORS["yellow"]
+        #passthrough.friction = 1.
+        #passthrough.collision_type = 2
+        #passthrough.filter = pymunk.ShapeFilter(categories=0b1000)
+        #self.space.add(passthrough)
 
         def passthrough_handler(arbiter, space, data):
             if arbiter.shapes[0].body.velocity.y < 0:
-                return True
+                return True # can land on platform when moving down
             else:
-                return False
+                return False # can pass through platform when moving up
 
         self.space.add_collision_handler(1, 2).begin = passthrough_handler
 
@@ -211,7 +172,7 @@ class Viewer():
         self.feet.color = 0, 0, 0, 0
         self.head.color = 0, 0, 0, 0
         self.head2.color = 0, 0, 0, 0
-        mask = pymunk.ShapeFilter.ALL_MASKS ^ passthrough.filter.categories
+        mask = pymunk.ShapeFilter.ALL_MASKS ^ 0b1000 #passthrough.filter.categories
         sf = pymunk.ShapeFilter(mask=mask)
         self.head.filter = sf
         self.head2.filter = sf
@@ -377,10 +338,10 @@ class Viewer():
             self.screen.fill(pygame.color.THECOLORS["black"])
 
             ### Helper lines
-            for y in [self.height * 0.125, self.height * 0.25, self.height * 0.375, self.height * 0.5,
-                      self.height * 0.625, self.height * 0.75]:
-                color = pygame.color.THECOLORS['darkgrey']
-                pygame.draw.line(self.screen, color, (self.width * 0.0144927, y), (self.width * 0.9855, y), 1)
+            #for y in [self.height * 0.125, self.height * 0.25, self.height * 0.375, self.height * 0.5,
+            #          self.height * 0.625, self.height * 0.75]:
+            #    color = pygame.color.THECOLORS['darkgrey']
+            #    pygame.draw.line(self.screen, color, (self.width * 0.0144927, y), (self.width * 0.9855, y), 1)
 
             ### Draw stuff
             self.space.debug_draw(self.draw_options)
