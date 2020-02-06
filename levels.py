@@ -96,6 +96,17 @@ def create_walls(number, space, width, height):
         static[-1].goup = 9
         static[-1].collision_type = 9
         space.add(static[-1])
+
+        # pass through platform
+        passthrough = pymunk.Segment(space.static_body, (width * 0.391, height * 0.25),
+                                     (width * 0.463, height * 0.25), 5)
+        passthrough.color = (0,255,255) #pygame.color.THECOLORS["yellow"]
+        passthrough.friction = 1.
+        passthrough.collision_type = 2
+        passthrough.filter = pymunk.ShapeFilter(categories=0b1000)
+        space.add(passthrough)
+
+        # ------------------
         return space
 
     if number == 2:
@@ -150,6 +161,17 @@ def create_walls(number, space, width, height):
         static[-1].goup = 9
         static[-1].collision_type = 9
         space.add(static[-1])
+
+        # pass-through platform(s)
+
+        # pass through platform
+        passthrough = pymunk.Segment(space.static_body, (width * 0.191, height * 0.25),
+                                     (width * 0.363, height * 0.25), 10)
+        passthrough.color = (255, 0, 255)  # pygame.color.THECOLORS["yellow"]
+        passthrough.friction = 1.
+        passthrough.collision_type = 2
+        passthrough.filter = pymunk.ShapeFilter(categories=0b1000)
+        space.add(passthrough)
         return space
 
 
