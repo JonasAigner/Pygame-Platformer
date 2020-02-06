@@ -16,6 +16,11 @@ import os
 import pymunk
 import pymunk.pygame_util 
 
+def relative_pos(pos):
+    x = pos[0]/690
+    y = pos[1]/400
+    return x,y
+
 def cpfclamp(f, min_, max_):
     """Clamp f between min and max"""
     return min(max(f, min_), max_)
@@ -90,7 +95,7 @@ class Viewer():
         self.space.gravity = 0,-1000
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         
-        self.create_walls()
+        self.space = levels.create_walls(self.current_level_number, self.space, self.width, self.height)
         
         # moving platform
         self.platform_path = [(self.width*0.942,self.height*0.25),(self.width*0.869,self.height*0.5),(self.width*0.942,self.height*0.725),(self.width*0.43478,self.height*0.725),(self.width*0.942,self.height*0.725)]
@@ -102,6 +107,16 @@ class Viewer():
         s.group = 1
         s.color = pygame.color.THECOLORS["blue"]
         self.space.add(s)
+        # 2.platform
+        self.platform_path2 = [relative_pos((600, 300)),relative_pos((800, 300))]
+        self.platform_path_index2 = 0
+        self.platform_body2 = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
+        self.platform_body2.position = relative_pos((600, 300))
+        s2 = pymunk.Segment(self.platform_body2, relative_pos((-25, 0)), relative_pos((25, 0)), 5)
+        s2.friction = 2.
+        s2.group = 1
+        s2.color = pygame.color.THECOLORS["blue"]
+        self.space.add(s2)
         
          # pass through platform
         passthrough = pymunk.Segment(self.space.static_body, (self.width*0.391, self.height*0.25), (self.width*0.463, self.height*0.25), 5)
@@ -128,6 +143,7 @@ class Viewer():
                 return True
         
         self.space.add_collision_handler(1,9).begin = goal_handler
+        
         
          # player
         self.body = pymunk.Body(5, pymunk.inf)
@@ -158,63 +174,10 @@ class Viewer():
         self.run()
         
     
-    def create_walls(self):
-        # Pymunk has y coordinates from low to high (upwards)
-        # Pygame has y coordinates from high to low (downwards)
-
-        # box walls
-        static = [pymunk.Segment(self.space.static_body, (self.width*0.01449, self.height*0.125), (self.width*0.43478, self.height*0.125), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.43478, self.height*0.125), (self.width*0.47101, self.height*0.125), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.47101, self.height*0.125), (self.width*0.5072, self.height*0.125), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.5072, self.height*0.125), (self.width*0.543478, self.height*0.125), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.543478, self.height*0.125), (self.width*0.9855, self.height*0.125), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.9855, self.height*0.125), (self.width*0.9855, self.height*0.925), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.9855, self.height*0.925), (self.width*0.01449, self.height*0.925), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.01449, self.height*0.925), (self.width*0.01449, self.height*0.125), 3)
-                       ]
-        
-        
-        
-        # paint some walls with colors
-        static[1].color = (255, 0, 0)  # pygame.color.THECOLORS['red']
-        static[2].color = (0, 255, 0)  # pygame.color.THECOLORS['green']
-        static[3].color = (255, 0, 0)  # pygame.color.THECOLORS['red']
-        
-
-        # rounded shape
-        rounded = [pymunk.Segment(self.space.static_body, (self.width*0.7246, self.height*0.125), (self.width*0.753623, self.height*0.15), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.753623, self.height*0.15), (self.width*0.7826, self.height*0.2), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.7826, self.height*0.2), (self.width*0.7971, self.height*0.25), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.7971, self.height*0.25), (self.width*0.7971, self.height*0.375), 3)
-                        ]
-
-        # static platforms
-        platforms = [pymunk.Segment(self.space.static_body, (170, self.height*0.125), (270, self.height*0.375), 3)
-                          # , pymunk.Segment(space.static_body, (270, 100), (300, 100), 5)
-            , pymunk.Segment(self.space.static_body, (self.width*0.5797, self.height*0.375), (self.width*0.65217, self.height*0.375), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.5797, self.height*0.5), (self.width*0.65217, self.height*0.5), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.31884, self.height*0.5), (self.width*0.43478, self.height*0.5), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.07246, self.height*0.625), (self.width*0.289855, self.height*0.625), 3)
-            , pymunk.Segment(self.space.static_body, (self.width*0.01449, self.height*0.925), (self.width*0.07246, self.height*0.625), 3)
-                          ]
-
-        # -- set friction and group for elements ---             ]
-        for s in static + platforms + rounded:
-            s.friction = 1.
-            s.group = 1
-        self.space.add(static, platforms + rounded)
-        
-        # goal platform
-        static.append(pymunk.Segment(self.space.static_body, (self.width-self.width*0.14492,self.height*0.925-self.height*0.175),(self.width-self.width*0.07246,self.height*0.925-self.height*0.175),4))
-        static[-1].color = (255,255,255)
-        static[-1].friction = 1.
-        static[-1].goup = 9
-        static[-1].collision_type = 9
-        self.space.add(static[-1])
         
     def change_level(self, level_number):
         self.space.remove(self.body, self.head, self.feet,self.head2)
-        self.space = pymunk.Space()
+        self.space = levels.create_walls(self.current_level_number, self.space, self.width, self.height)
         self.space.gravity = (0, -1000)
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         self.space.add(self.body, self.head, self.feet,self.head2)
