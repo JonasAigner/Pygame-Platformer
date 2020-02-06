@@ -19,6 +19,37 @@ pre_layout = [[sg.Text("Enter width and height of your level")],
 
 pre_window = sg.Window('Level Creator', pre_layout, finalize=True,resizable=False)
 
+COLORS = {"green":(0,255,0),"blue":(0,0,255),"red":(255,0,0),"white":(255,255,255),"gray":(100,100,100),"black":(0,0,0),"aqua":(91,196,228)}
+
+class Solid_rect():
+    def __init__(self, width, height, pos, color=COLORS["gray"]):
+        self.width = width
+        self.height = height
+        self.pos = pos
+        self.color = color
+        self.fixcolor = color
+        self.selected = False
+        self.create_image()
+        
+        
+        
+    
+    def update(self):
+        if self.selected == True:
+            self.image.blit(self.overlay,(0,0))
+        else:
+            self.image.blit(self.image,(0,0))
+            
+    def create_image(self):
+        self.image = pygame.Surface((self.width,self.height))
+        self.image.fill(self.color)
+        self.overlay = pygame.Surface((self.width,self.height))
+        #unsichtbare Farbe schwarz 0,0,0
+        self.overlay.set_colorkey((0,0,0))
+        self.overlay.convert_alpha()
+        self.overlay.set_alpha(100)
+        self.overlay.fill(COLORS["aqua"])
+
 while True:
 
     event, values = pre_window.read()
@@ -53,21 +84,90 @@ screen.fill(pygame.Color(255, 255, 255))
 
 pygame.display.init()
 pygame.display.update()
+solids = []
+selected = []
+alls = []
+alls += solids
+clock = pygame.time.Clock()
 
-while True:
 
-
+running = True
+while running:
+    # ========= pysimplegui ============
     event, values = window.read(timeout=10)
     if event in (None, 'Exit'):
         window.close()
         break
     elif event == 'Add Solid':
         query = values['-QUERY-']
-        if query == "solid":
-            pass
-        print("solid")
-    elif event == 'Draw':
-        pygame.draw.circle(screen, (0, 0, 0), (250, 250), 125)
+        if query == "":
+            newsolid = Solid_rect(100,100,[0,0])
+            solids.append(newsolid)
+            print("solid")
+    
+    
+    
+    # ========== pygame ==========    
+    
+
+    
+    # --------------- mouse ------------------
+    mouse = pygame.mouse
+    mousepos = mouse.get_pos()
+    left, middle, right = mouse.get_pressed()
+    for obj in solids:
+        if oldleft and not left and mousepos[0] >= obj.pos[0] and mousepos[0] <= obj.pos[0]+obj.width and mousepos[1] >= obj.pos[1] and mousepos[1] <= obj.pos[1]+obj.height:    
+            obj.selected = True
+            selected.append(obj)
+        
+        obj.update()
+        
+    oldleft, oldmiddle, oldright = left, middle, right
+    # ----------------------------------------
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+                
+                
+    pressed_keys = pygame.key.get_pressed()
+    if pressed_keys[pygame.K_RIGHT]:
+        for obj in selected:
+            if pressed_keys[pygame.K_LSHIFT]:
+                obj.width += 2
+                obj.create_image()
+            else:
+                obj.pos[0] += 2
+    if pressed_keys[pygame.K_UP]:
+        for obj in selected:
+            if pressed_keys[pygame.K_LSHIFT]:
+                obj.height -= 2
+                obj.create_image()
+            else:
+                obj.pos[1] -= 2
+    if pressed_keys[pygame.K_DOWN]:
+        for obj in selected:
+            if pressed_keys[pygame.K_LSHIFT]:
+                obj.height += 2
+                obj.create_image()
+            else:
+                obj.pos[1] += 2
+    if pressed_keys[pygame.K_LEFT]:
+        for obj in selected:
+            if pressed_keys[pygame.K_LSHIFT]:
+                obj.width -= 2
+                obj.create_image()
+            else:
+                obj.pos[0] -= 2
+    
+    
+    
+    screen.fill(COLORS["white"])
+    for solid in solids:
+        screen.blit(solid.image,solid.pos)
     pygame.display.update()
 
 
